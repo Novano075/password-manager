@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Хранилище паролей</title>
+
+  <!-- тема Flatly -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.1/dist/flatly/bootstrap.min.css">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="container py-5">
+
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h2 class="card-title mb-4">🔒 Хранилище паролей</h2>
+
+       
+        <div class="table-responsive custom-scroll">
+          <table class="table table-striped mb-0">
+            <thead class="thead-light">
+              <tr>
+                <th>Сайт</th>
+                <th>Логин</th>
+                <th>Зашифрованный пароль</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for e in entries %}
+              <tr>
+                <td>{{ e.site }}</td>
+                <td>{{ e.login }}</td>
+                <td><code>{{ e.encrypted_password }}</code></td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

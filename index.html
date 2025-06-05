@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Password Manager</title>
+
+  <!-- тема Flatly -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.1/dist/flatly/bootstrap.min.css">
+  <!-- ваши стили -->
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="container py-5">
+
+    <!-- Форма добавления -->
+    <div class="card mb-5 shadow-sm">
+      <div class="card-body">
+        <h2 class="card-title text-center mb-4">🔐 Добавить пароль</h2>
+        <form id="addForm">
+          <div class="mb-3">
+            <input type="text" id="site" class="form-control" placeholder="Сайт" required>
+          </div>
+          <div class="mb-3">
+            <input type="text" id="login" class="form-control" placeholder="Логин" required>
+          </div>
+          <div class="mb-3">
+            <input type="password" id="password" class="form-control" placeholder="Пароль" required>
+          </div>
+          <div class="mb-3">
+            <input type="password" id="master" class="form-control" placeholder="Мастер-пароль" required>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Зашифровать</button>
+        </form>
+        <p id="result" class="mt-3 text-success"></p>
+      </div>
+    </div>
+
+    <!-- Форма расшифровки -->
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h2 class="card-title text-center mb-4">🔓 Расшифровать пароль</h2>
+        <form id="decryptForm">
+          <div class="mb-3">
+            <input type="text" id="decryptSite" class="form-control" placeholder="Сайт" required>
+          </div>
+          <div class="mb-3">
+            <input type="password" id="decryptMaster" class="form-control" placeholder="Мастер-пароль" required>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Расшифровать</button>
+        </form>
+        <p id="decryptedResult" class="mt-3 text-info"></p>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // шифрование
+    document.getElementById("addForm").onsubmit = async function(e) {
+      e.preventDefault();
+      const res = await fetch("/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          site:     document.getElementById("site").value,
+          login:    document.getElementById("login").value,
+          password: document.getElementById("password").value,
+          master:   document.getElementById("master").value
+        })
+      });
+      const data = await res.json();
+      document.getElementById("result").innerText =
+        "🔐 Зашифрованный пароль: " + data.encrypted;
+    };
+
+    // расшифровка (теперь из /api/entries)
+    document.getElementById("decryptForm").onsubmit = async function(e) {
+      e.preventDefault();
+      const site   = document.getElementById("decryptSite").value;
+      const master = document.getElementById("decryptMaster").value;
+
+      const allRes = await fetch("/api/entries");
+      const entries = await allRes.json();
+
+      const entry = entries.find(item => item.site === site);
+      if (!entry) {
+        document.getElementById("decryptedResult").innerText = "Сайт не найден.";
+        return;
+      }
+
+      const res = await fetch("/decrypt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          encrypted: entry.encrypted,
+          master:    master
+        })
+      });
+      if (!res.ok) {
+        document.getElementById("decryptedResult").innerText =
+          "Ошибка расшифровки. Проверьте мастер-пароль.";
+        return;
+      }
+
+      const data = await res.json();
+      document.getElementById("decryptedResult").innerText =
+        `Логин: ${entry.login}\nПароль: ${data.decrypted}`;
+    };
+  </script>
+</body>
+</html>
